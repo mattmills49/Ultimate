@@ -49,7 +49,7 @@ readin_function <- function(filename) {
 season_df <- map(files, readin_function) %>%
   bind_rows
 
-nas <- map_int(test, ~ sum(is.na(.x)))
+nas <- map_int(season_df, ~ sum(is.na(.x)))
 bad_cols <- names(nas[nas == nrow(season_df)])
 
 season_df <- season_df[, !(names(season_df) %in% bad_cols)]
@@ -191,11 +191,18 @@ team_df <- expand.grid(Team = teams, Opponent = opps, stringsAsFactors = F) %>%
 season_plays <- left_join(season_plays, team_df, by = c("Team"))
 
 #' #### Merge Offense and Defense
+#' 
+#' Each row is from one team's perspective, they can either be on offense or 
+#' defense. So I'm going to take every Offense point and the relevant info and
+#' then merge the D line from that same point. 
+#' To merge the data I'll need to switch the Team and Opponent variables around
+#' so that can be matched up with the other team's lines. 
+#' To make sure I do it right I probably want to keep the score, times, and 
+#' point durations to compare. 
 #+
-
 offense_info <- season_plays %>%
   filter(Line == "O") %>%
-  select(Game_Time:Player_6, Play_Num, Action_Num, Team_Name)
+  select(Game_Time:Player_6, Play_Num:Team_Name)
 
 defense_info <- season_plays %>%
   filter(Line == "D") %>%
